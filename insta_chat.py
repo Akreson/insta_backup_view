@@ -266,7 +266,7 @@ def main():
         os.chdir(messages_dir)
 
         files = get_json_files()    
-        Chat.build_html(messages)
+        Chat.build_html(files)
     else:
         print("ERROR: Invalid path")
 
