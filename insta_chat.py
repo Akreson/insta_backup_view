@@ -223,6 +223,7 @@ def get_json_files():
     return result
 
 def main():
+    # NOTE: Full path to chat folder
     messages_dir = sys.argv[1]
 
     if os.path.isdir(messages_dir):
