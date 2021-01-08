@@ -194,16 +194,51 @@ class ChatRoom:
                 add_text += msg_pattert_end
                 self.chat_page += add_text
 
+    def check_owner(self, msg_list):
+        for msg in msg_list:
+            owner_name = get_utf8_str(msg["participants"][1]["name"])
+
+            if self.owner is None:
+                self.owner = owner_name
+            elif self.owner != owner_name:
+                return False
+        
+        return True
+
+    def sort_by_time(self, msg_list):
+        result_list = []
+        time_list = []
+
+        for i, msg in enumerate(msg_list):
+            time = msg["messages"][0]["timestamp_ms"]
+            time_list.append((i, time))
+        
+        time_list = sorted(time_list, key=lambda tup: tup[1])
+
+        for item in time_list:
+            result_list.append(msg_list[item[0]])
+
+        return result_list
 
     def build_html(self, data):
-        owner_name = get_utf8_str(data["participants"][0]["name"])
+        message_list = []
+        for file in files:
+            with open(file, encoding='utf-8') as f:
+                try:
+                   msg = json.load(f)
+                   message_list.append(msg)
+                except:
+                    error("ERROR: Invalid json file")
 
-        if self.owner is None:
-            self.owner = owner_name
-        elif self.owner != owner_name:
-            error("ERROR: Owner in  json file not match")
+        if not self.check_owner(message_list):
+            error("ERROR: Owner in json file not match")
 
-        self.parse_data(data)
+        sorted_msg_list = self.sort_by_time(message_list)
+
+        print("Sorting done")
+        for msg_list in sorted_msg_list:
+            self.parse_data(msg_list)
+
         self.chat_page += html_body_end
         
         result_html = open("this_chat.html", "wb")
@@ -230,22 +265,8 @@ def main():
         Chat = ChatRoom(messages_dir)
         os.chdir(messages_dir)
 
-        files = get_json_files()
-
-        for file in files:
-            with open(file, encoding='utf-8') as f:
-                try:
-                   messages = json.load(f)
-                except:
-                    error("ERROR: Invalid json file")
-                    
-                Chat.build_html(messages)
-
-        ##result = unicode_str.encode('latin1').decode('utf8')
-        ##print(result)
-        ##file = open("TEXT.txt", "wb")
-        ##file.write(result.encode())
-        ##file.close()
+        files = get_json_files()    
+        Chat.build_html(messages)
     else:
         print("ERROR: Invalid path")
 
